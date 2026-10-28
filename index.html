@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIND YOUR PATH - اكتشف مسارك</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        deepBlack: '#050505',
+                        darkCharcoal: '#111111',
+                        luxGold: '#D9B56D',
+                        neonCyan: '#00FFFF',
+                        deepRed: '#C1121F',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base & Scrollbar */
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(217, 181, 109, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 255, 255, 0.05), transparent 25%);
+        }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #D9B56D; border-radius: 10px; border: 2px solid #050505; }
+        ::-webkit-scrollbar-thumb:hover { background: #C1121F; }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(217, 181, 109, 0.15);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(217, 181, 109, 0.05);
+            border-radius: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transform: skewX(-20deg);
+            animation: shine 8s infinite alternate;
+        }
+
+        .glass-card {
+            background: rgba(20, 20, 20, 0.7);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card:hover {
+            background: rgba(217, 181, 109, 0.08);
+            border-color: rgba(217, 181, 109, 0.4);
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 15px 35px rgba(217, 181, 109, 0.15);
+        }
+
+        .glass-card.selected {
+            background: rgba(217, 181, 109, 0.15);
+            border-color: #D9B56D;
+            box-shadow: 0 0 25px rgba(217, 181, 109, 0.25) inset, 0 10px 30px rgba(217, 181, 109, 0.4);
+            transform: scale(1.03);
+        }
+
+        /* Footer */
+        .glass-footer {
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(217, 181, 109, 0.2);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.8);
+        }
+
+        /* Gradients & Text Glows */
+        .text-glow-gold { text-shadow: 0 0 25px rgba(217, 181, 109, 0.7); }
+        .text-glow-cyan { text-shadow: 0 0 25px rgba(0, 255, 255, 0.7); }
+        .text-glow-red { text-shadow: 0 0 25px rgba(193, 18, 31, 0.7); }
+
+        .bg-gradient-gold-red { background: linear-gradient(135deg, #D9B56D, #C1121F); }
+        
+        .text-gradient-gold {
+            background: linear-gradient(to right, #D9B56D, #FFEDBA, #D9B56D);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientText 4s linear infinite;
+        }
+
+        /* Ambient Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.25;
+            animation: floatOrb 15s infinite ease-in-out alternate;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #C1121F; top: -100px; right: -150px; }
+        .orb-2 { width: 500px; height: 500px; background: #D9B56D; bottom: -200px; left: -100px; animation-delay: -5s; }
+        .orb-3 { width: 300px; height: 300px; background: #00FFFF; top: 30%; left: 60%; opacity: 0.15; animation-delay: -10s; }
+
+        /* Cinematic Animations */
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+        
+        @keyframes gradientText {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(60px, -60px) scale(1.15); }
+            100% { transform: translate(-30px, 80px) scale(0.9); }
+        }
+
+        /* Pulse Effects */
+        .pulse-gold { animation: pulseGold 2s infinite cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes pulseGold {
+            0% { box-shadow: 0 0 0 0 rgba(217, 181, 109, 0.8); }
+            70% { box-shadow: 0 0 0 20px rgba(217, 181, 109, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(217, 181, 109, 0); }
+        }
+        
+        .pulse-cyan { animation: pulseCyan 2s infinite cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes pulseCyan {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.8); }
+            70% { box-shadow: 0 0 0 20px rgba(0, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0); }
+        }
+
+        /* Reveal & Transitions */
+        .reveal-up {
+            animation: revealUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        @keyframes revealUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scene-transition {
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .scene-out { opacity: 0; transform: scale(0.97) translateY(10px); }
+        .scene-in { opacity: 1; transform: scale(1) translateY(0); }
+
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+
+        /* Cinematic Spinner */
+        .cinematic-spinner {
+            width: 100px;
+            height: 100px;
+            border: 3px solid rgba(217, 181, 109, 0.05);
+            border-top-color: #D9B56D;
+            border-bottom-color: #C1121F;
+            border-left-color: #00FFFF;
+            border-radius: 50%;
+            animation: spinFast 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            box-shadow: 0 0 30px rgba(217, 181, 109, 0.3);
+        }
+        @keyframes spinFast { 100% { transform: rotate(360deg); } }
+
+        /* Floating Particles (CSS only) */
+        .particle {
+            position: absolute;
+            background: #D9B56D;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            animation: particleFloat 8s infinite linear;
+        }
+        @keyframes particleFloat {
+            0% { transform: translateY(0) scale(0); opacity: 0; }
+            20% { opacity: 0.8; transform: scale(1); }
+            80% { opacity: 0.5; }
+            100% { transform: translateY(-100px) scale(0); opacity: 0; }
+        }
+
+        /* AI Scanner Effects */
+        .scanner-laser {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #00FFFF;
+            box-shadow: 0 0 15px #00FFFF, 0 0 30px #00FFFF;
+            animation: laserScan 2s ease-in-out infinite alternate;
+            z-index: 10;
+        }
+        @keyframes laserScan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        /* Layout Structure */
+        #main-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-luxGold selection:text-black">
+
+    <!-- Ambient Background Effects -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    
+    <!-- Particles Engine (CSS based simulation) -->
+    <div id="particles-container" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <!-- Main Content Area -->
+    <div id="main-wrapper">
+        <div id="app-container" class="w-full max-w-4xl scene-transition scene-in">
+            <!-- Dynamic content injected here -->
+        </div>
+    </div>
+
+    <!-- Elegant Footer / Watermark -->
+    <footer class="glass-footer w-full py-5 px-4 text-center z-20 mt-auto">
+        <div class="container mx-auto flex justify-center items-center gap-2 text-sm md:text-base font-semibold text-gray-300 flex-col md:flex-row">
+            <div class="flex items-center gap-2">
+                <span>&copy; 2026 جميع الحقوق محفوظة</span>
+                <span class="text-neonCyan mx-2 hidden md:inline">|</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span>إعداد</span>
+                <span class="text-luxGold font-bold text-glow-gold tracking-wide text-lg">م. يوسف كريم عابد (بويكا)</span>
+                <i class="fa-solid fa-crown text-luxGold ml-1 drop-shadow-[0_0_8px_rgba(217,181,109,0.8)]"></i>
+            </div>
+        </div>
+    </footer>
+
+    <!-- App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Initialization ---
+        let db, auth, currentUserId;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'find-your-path-app';
+
+        async function initFirebase() {
+            try {
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                if (Object.keys(firebaseConfig).length > 0) {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                    
+                    const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (token) {
+                        await signInWithCustomToken(auth, token).then(u => currentUserId = u.user.uid);
+                    } else {
+                        await signInAnonymously(auth).then(u => currentUserId = u.user.uid);
+                    }
+                }
+            } catch(e) {
+                console.error("Firebase init error:", e);
+            }
+        }
+        initFirebase();
+
+        window.saveUserData = async (data) => {
+            if (!db || !currentUserId) return;
+            try {
+                // Rule 1 Strict Path for Follow List
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'registrations');
+                await addDoc(colRef, {
+                    ...data,
+                    userId: currentUserId,
+                    timestamp: new Date().toISOString()
+                });
+            } catch(e) { console.error("Error saving data", e); }
+        }
+
+        // --- Generate Particles ---
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            for(let i = 0; i < 20; i++) {
+                let particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                particle.style.width = Math.random() * 4 + 1 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = (Math.random() * 8) + 's';
+                particle.style.background = Math.random() > 0.5 ? '#D9B56D' : '#00FFFF';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // --- Data ---
+        window.questionsData = [
+            {
+                question: "إيه المجال اللي مهتم تتعلمه؟",
+                icon: "fa-compass",
+                options: [
+                    { id: 'web', text: "البرمجة وتطوير المواقع", icon: "fa-code" },
+                    { id: 'marketing', text: "التسويق الرقمي والإعلانات", icon: "fa-bullhorn" },
+                    { id: 'graphic', text: "الجرافيك ديزاين", icon: "fa-pen-nib" },
+                    { id: 'video', text: "المونتاج وصناعة المحتوى", icon: "fa-video" },
+                    { id: 'ai', text: "الذكاء الاصطناعي AI", icon: "fa-brain" },
+                    { id: 'english', text: "اللغة الإنجليزية وتطوير الذات", icon: "fa-language" },
+                    { id: 'undecided', text: "لسه مش عارف وعايز مساعدة", icon: "fa-question-circle" }
+                ]
+            },
+            {
+                question: "إيه مستواك الحالي؟",
+                icon: "fa-layer-group",
+                options: [
+                    { id: 'beginner', text: "مبتدئ تمامًا", icon: "fa-seedling" },
+                    { id: 'intermediate', text: "عندي معلومات بسيطة", icon: "fa-leaf" },
+                    { id: 'advanced', text: "عندي خبرة وعايز أطور نفسي", icon: "fa-tree" }
+                ]
+            },
+            {
+                question: "إيه هدفك من التعلم؟",
+                icon: "fa-bullseye",
+                options: [
+                    { id: 'cv', text: "تطوير مهاراتي وتقوية الـCV", icon: "fa-file-alt" },
+                    { id: 'projects', text: "تنفيذ مشروعات عملية", icon: "fa-laptop-code" },
+                    { id: 'job', text: "الاستعداد لسوق العمل", icon: "fa-briefcase" },
+                    { id: 'income', text: "زيادة الدخل وتطوير شغلي", icon: "fa-chart-line" }
+                ]
+            },
+            {
+                question: "تقدر تخصص وقت قد إيه يوميًا للتعلم؟",
+                icon: "fa-clock",
+                options: [
+                    { id: 'less_1', text: "أقل من ساعة", icon: "fa-hourglass-start" },
+                    { id: '1_to_2', text: "من ساعة إلى ساعتين", icon: "fa-hourglass-half" },
+                    { id: 'more_2', text: "أكثر من ساعتين", icon: "fa-hourglass-end" }
+                ]
+            },
+            {
+                question: "إيه الميزانية المناسبة ليك؟",
+                icon: "fa-wallet",
+                options: [
+                    { id: 'free', text: "بدور على مصادر مجانية", icon: "fa-gift" },
+                    { id: 'limited', text: "ميزانيتي محدودة", icon: "fa-coins" },
+                    { id: 'paid', text: "مستعد أدفع مقابل محتوى تدريبي", icon: "fa-credit-card" }
+                ]
+            }
+        ];
+
+        // --- State ---
+        window.state = {
+            currentStep: 0,
+            answers: {},
+            whatsappStep: 1,
+            userData: null,
+            flow: null // 'path' or 'ticket'
+        };
+
+        const appContainer = document.getElementById('app-container');
+
+        // --- Cinematic Transitions ---
+        window.transitionTo = function(renderFunction) {
+            appContainer.classList.remove('scene-in');
+            appContainer.classList.add('scene-out');
+            
+            setTimeout(() => {
+                renderFunction();
+                appContainer.classList.remove('scene-out');
+                void appContainer.offsetWidth; // Force reflow
+                appContainer.classList.add('scene-in');
+            }, 600);
+        };
+
+        // --- Screens ---
+
+        window.renderRegister = function() {
+            appContainer.innerHTML = `
+                <div class="glass-panel p-8 md:p-12 max-w-lg mx-auto reveal-up shadow-[0_0_40px_rgba(217,181,109,0.15)]">
+                    <div class="text-center mb-8">
+                        <i class="fa-solid fa-user-astronaut text-luxGold text-5xl mb-4 text-glow-gold"></i>
+                        <h2 class="text-3xl font-black text-white tracking-wide">تسجيل الدخول</h2>
+                        <p class="text-gray-400 mt-2">يرجى إدخال بياناتك للمتابعة</p>
+                    </div>
+                    
+                    <form id="register-form" onsubmit="event.preventDefault(); window.submitRegister();" class="space-y-5 text-right">
+                        <div>
+                            <label class="block text-gray-300 mb-2 font-bold">الاسم ثلاثي</label>
+                            <input type="text" id="reg-name" required class="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-luxGold focus:ring-1 focus:ring-luxGold transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2 font-bold">رقم التليفون</label>
+                            <input type="tel" id="reg-phone" required class="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-luxGold focus:ring-1 focus:ring-luxGold transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2 font-bold">اسم الشخص اللي دعاك</label>
+                            <input type="text" id="reg-inviter" required class="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-luxGold focus:ring-1 focus:ring-luxGold transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2 font-bold">بتدرس إيه؟</label>
+                            <input type="text" id="reg-study" required class="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-luxGold focus:ring-1 focus:ring-luxGold transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2 font-bold">المحافظة</label>
+                            <select id="reg-gov" required class="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-luxGold focus:ring-1 focus:ring-luxGold transition-all appearance-none">
+                                <option value="أسيوط">أسيوط</option>
+                                <option value="القاهرة">القاهرة</option>
+                                <option value="الإسكندرية">الإسكندرية</option>
+                                <option value="سوهاج">سوهاج</option>
+                                <option value="المنيا">المنيا</option>
+                                <option value="أخرى">أخرى</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-gradient-gold-red pulse-gold text-white font-black py-4 rounded-xl mt-6 hover:scale-[1.02] transition-transform shadow-[0_5px_20px_rgba(193,18,31,0.4)] flex justify-center items-center gap-3 text-xl">
+                            متابعة <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                    </form>
+                </div>
+            `;
+        };
+
+        window.submitRegister = async function() {
+            const data = {
+                fullName: document.getElementById('reg-name').value,
+                phone: document.getElementById('reg-phone').value,
+                inviter: document.getElementById('reg-inviter').value,
+                study: document.getElementById('reg-study').value,
+                governorate: document.getElementById('reg-gov').value
+            };
+            
+            window.state.userData = data;
+            
+            // Save to Firebase asynchronously
+            window.saveUserData(data);
+
+            window.transitionTo(window.renderMainMenu);
+        };
+
+        window.renderMainMenu = function() {
+            appContainer.innerHTML = `
+                <div class="glass-panel p-10 md:p-16 text-center reveal-up max-w-2xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-black mb-4 text-white">أهلاً بك يا <span class="text-luxGold text-glow-gold drop-shadow-md">${window.state.userData.fullName}</span></h2>
+                    <p class="text-gray-400 mb-10 text-lg">اختر وجهتك القادمة للبدء:</p>
+                    
+                    <div class="flex flex-col md:flex-row gap-6 justify-center">
+                        <button onclick="window.startPathFlow()" class="flex-1 glass-card border-2 border-luxGold text-luxGold hover:bg-luxGold/10 font-black py-8 px-4 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 group relative overflow-hidden">
+                            <i class="fa-solid fa-compass text-5xl mb-4 block text-glow-gold group-hover:rotate-45 transition-transform duration-500"></i>
+                            <span class="text-2xl block">اكتشف مسارك</span>
+                            <span class="text-sm font-normal mt-2 block text-gray-400">تحليل تفاعلي لاختيار مجالك</span>
+                        </button>
+                        
+                        <button onclick="window.startTicketFlow()" class="flex-1 bg-neonCyan text-black font-black py-8 px-4 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 hover:bg-[#33ffff] shadow-[0_0_30px_rgba(0,255,255,0.4)] group relative overflow-hidden">
+                            <i class="fa-solid fa-ticket text-5xl mb-4 block group-hover:scale-110 transition-transform duration-500"></i>
+                            <span class="text-2xl block">احجز تيكت بريزنتيشن</span>
+                            <span class="text-xl block mt-1 font-extrabold text-black/80">نقطة بداية</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.startPathFlow = function() {
+            window.state.flow = 'path';
+            window.transitionTo(window.renderHero);
+        };
+
+        window.startTicketFlow = function() {
+            window.state.flow = 'ticket';
+            window.transitionTo(window.renderTicketPayment);
+        };
+
+        window.renderHero = function() {
+            appContainer.innerHTML = `
+                <div class="glass-panel w-full p-10 md:p-20 text-center reveal-up">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-gold-red"></div>
+                    
+                    <h2 class="text-luxGold font-bold tracking-widest text-xs md:text-sm mb-6 uppercase reveal-up delay-100">
+                        <i class="fa-solid fa-film mr-2"></i> التجربة التفاعلية لاكتشاف الذات
+                    </h2>
+                    
+                    <h1 class="text-5xl md:text-7xl lg:text-8xl font-black mb-8 leading-tight reveal-up delay-200">
+                        FIND <br class="md:hidden"/> <span class="text-gradient-gold text-glow-gold">YOUR PATH</span>
+                    </h1>
+                    
+                    <h3 class="text-2xl md:text-3xl font-bold mb-6 text-white reveal-up delay-300 drop-shadow-lg">
+                        مش عارف تبدأ منين؟ إحنا هنساعدك.
+                    </h3>
+                    
+                    <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed reveal-up delay-400">
+                        رحلة سينمائية قصيرة من 5 أسئلة، تحلل اهتماماتك وتصمم لك خريطة طريق مخصصة.
+                    </p>
+                    
+                    <div class="flex justify-center reveal-up delay-[500ms]">
+                        <button onclick="window.transitionTo(window.renderQuiz)" class="bg-gradient-gold-red pulse-gold hover:opacity-90 text-white font-black py-4 px-12 rounded-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 flex items-center justify-center gap-4 text-xl md:text-2xl border border-luxGold/50 shadow-[0_10px_20px_rgba(193,18,31,0.3)]">
+                            <span>ابدأ مسارك الآن</span>
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.renderTicketPayment = function() {
+            appContainer.innerHTML = `
+                <div class="glass-panel p-8 md:p-12 max-w-xl mx-auto reveal-up border-neonCyan/30 shadow-[0_0_40px_rgba(0,255,255,0.15)] text-center">
+                    <div class="w-20 h-20 bg-neonCyan/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-neonCyan/50">
+                        <i class="fa-solid fa-wallet text-neonCyan text-3xl text-glow-cyan"></i>
+                    </div>
+                    
+                    <h2 class="text-3xl font-black text-white mb-6">حجز تيكت "نقطة بداية"</h2>
+                    
+                    <div class="bg-black/50 border border-white/10 rounded-xl p-6 mb-8 text-right">
+                        <p class="text-gray-300 text-lg leading-relaxed mb-4">
+                            لتأكيد حجز التيكت، يرجى تحويل مبلغ <span class="text-neonCyan font-bold text-2xl mx-1">30 جنيه</span> عبر محفظة 
+                            <span class="text-orange-500 font-bold mx-1">فودافون كاش، أورانج كاش، أو اتصالات كاش</span> إلى الرقم التالي:
+                        </p>
+                        <div class="bg-[#111111] border-2 border-dashed border-neonCyan/50 rounded-lg p-4 text-center mb-4 select-all">
+                            <span class="text-4xl font-black text-white tracking-widest">01114814901</span>
+                        </div>
+                        <p class="text-gray-400 text-sm text-center"><i class="fa-solid fa-circle-info mr-1"></i> احتفظ بسكرين شوت للتحويل لتأكيد الحجز.</p>
+                    </div>
+
+                    <form id="payment-form" onsubmit="event.preventDefault(); window.simulatePaymentVerification();" class="space-y-6">
+                        <div class="text-right">
+                            <label class="block text-gray-300 mb-2 font-bold">نوع المحفظة المستخدمة في التحويل</label>
+                            <select required class="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neonCyan focus:ring-1 focus:ring-neonCyan transition-all appearance-none">
+                                <option value="" disabled selected>اختر المحفظة...</option>
+                                <option value="vodafone">فودافون كاش</option>
+                                <option value="orange">أورانج كاش</option>
+                                <option value="etisalat">اتصالات كاش</option>
+                            </select>
+                        </div>
+                        <div class="text-right">
+                            <label class="block text-gray-300 mb-2 font-bold">إرفاق إثبات التحويل (سكرين شوت)</label>
+                            <input type="file" required accept="image/*" class="w-full bg-[#111111] border border-white/10 rounded-xl px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-neonCyan file:text-black hover:file:bg-[#33ffff] transition-all cursor-pointer">
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-neonCyan text-black font-black py-4 rounded-xl hover:scale-[1.02] transition-transform shadow-[0_5px_20px_rgba(0,255,255,0.4)] flex justify-center items-center gap-3 text-xl pulse-cyan">
+                            تحقق من التحويل واستلام التيكت <i class="fa-solid fa-check-circle"></i>
+                        </button>
+                    </form>
+
+                    <div id="verification-loader" class="hidden mt-8">
+                        <div class="cinematic-spinner w-12 h-12 mx-auto mb-4 !border-t-[#36CFFF] !border-b-[#36CFFF] border-transparent"></div>
+                        <p class="text-[#36CFFF] font-bold animate-pulse">جاري التحقق من عملية الدفع عبر المحفظة الإلكترونية...</p>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.simulatePaymentVerification = function() {
+            document.getElementById('payment-form').classList.add('hidden');
+            document.getElementById('verification-loader').classList.remove('hidden');
+            setTimeout(() => {
+                window.transitionTo(window.renderTicketSuccess);
+            }, 2500);
+        };
+
+        window.renderTicketSuccess = function() {
+            // Whatsapp details for ticket
+            const waMessage = `*تأكيد حجز تيكت - نقطة بداية* 🎫\n\n` +
+                              `أهلاً، أنا ${window.state.userData.fullName}\n` +
+                              `رقم الموبايل: ${window.state.userData.phone}\n` +
+                              `المحافظة: ${window.state.userData.governorate}\n` +
+                              `الدعوة من: ${window.state.userData.inviter}\n\n` +
+                              `قمت بتحويل رسوم التيكت (30 جنيه) ومرفق إثبات الدفع.`;
+
+            const encodedMessage = encodeURIComponent(waMessage);
+            window.waLink1 = `https://wa.me/201131134244?text=${encodedMessage}`;
+            window.waLink2 = `https://wa.me/201003439385?text=${encodedMessage}`;
+            window.state.whatsappStep = 1;
+
+            appContainer.innerHTML = `
+                <div class="reveal-up text-center mb-8">
+                    <h2 class="text-4xl font-black text-[#36CFFF] drop-shadow-[0_0_20px_rgba(54,207,255,0.5)] mb-2">تم تأكيد الدفع بنجاح!</h2>
+                    <p class="text-gray-300 text-lg">هذا هو التيكت الخاص بك. يرجى إرساله للمستشارين لتأكيد القائمة.</p>
+                </div>
+
+                <!-- Custom Ticket Design matching the image -->
+                <div class="relative w-[350px] sm:w-[400px] max-w-full mx-auto bg-white rounded-xl overflow-hidden border-[2px] border-neonCyan shadow-[0_0_20px_rgba(0,255,255,0.6)] mb-8 text-black font-sans reveal-up delay-100 transform hover:scale-[1.02] transition-transform duration-500">
+                    
+                    <!-- Top Image -->
+                    <img src="WhatsApp Image 2026-10-28 at 8.14.05 PM_2.jpeg" class="w-full block" alt="Event Image" onerror="this.src='https://placehold.co/400x250/000000/36CFFF?text=Starting+Point'">
+                    
+                    <!-- Title Bar -->
+                    <div class="bg-[#0b1320] text-neonCyan text-center py-2 font-black text-xl tracking-wide">
+                        تذكرة حضور فعالية «نقطة بداية»
+                    </div>
+                    
+                    <!-- Sponsor Text -->
+                    <div class="text-center py-3">
+                        <h4 class="font-black text-xl m-0 leading-tight">المنصة الرسمية: FIND YOUR PATH</h4>
+                        <p class="font-bold text-gray-800 text-sm m-0">برعاية م. يوسف كريم عابد (بويكا)</p>
+                    </div>
+                    
+                    <!-- Data Container -->
+                    <div class="px-5 py-2 relative text-sm font-bold">
+                        
+                        <!-- Stamp Overlay -->
+                        <div class="absolute -left-4 bottom-2 w-[110px] h-[110px] border-[3px] border-neonCyan rounded-full flex flex-col justify-center items-center text-neonCyan transform -rotate-12 opacity-95 z-10 font-black text-center bg-white/90 shadow-[inset_0_0_10px_rgba(0,255,255,0.3)]">
+                            <svg viewBox="0 0 100 100" class="absolute w-full h-full -z-10 animate-[spin_15s_linear_infinite]">
+                                <path id="curve" d="M 10 50 A 40 40 0 1 1 90 50 A 40 40 0 1 1 10 50" fill="transparent"/>
+                                <text class="text-[12px] fill-neonCyan font-bold tracking-widest">
+                                    <textPath href="#curve" startOffset="50%" text-anchor="middle">مؤكد دفع 30ج • مؤكد دفع 30ج •</textPath>
+                                </text>
+                            </svg>
+                            <span class="text-lg mt-2 tracking-widest text-[#0b1320]">CONFIRMED</span>
+                        </div>
+
+                        <!-- Rows -->
+                        <div class="space-y-[6px] relative z-0">
+                            <!-- Row 1 -->
+                            <div class="flex border-[2px] border-black rounded-lg overflow-hidden min-h-[34px]">
+                                <div class="bg-black text-white w-24 flex items-center justify-center border-l-[2px] border-black">الاسم:</div>
+                                <div class="flex-1 flex items-center justify-center bg-white text-black px-2 text-center break-words">${window.state.userData.fullName}</div>
+                            </div>
+                            <!-- Row 2 -->
+                            <div class="flex border-[2px] border-black rounded-lg overflow-hidden min-h-[34px]">
+                                <div class="bg-black text-white w-24 flex items-center justify-center border-l-[2px] border-black">الهاتف:</div>
+                                <div class="flex-1 flex items-center justify-center bg-white text-black px-2 tracking-widest">${window.state.userData.phone}</div>
+                            </div>
+                            <!-- Row 3 (Black Background) -->
+                            <div class="flex border-[2px] border-black rounded-lg overflow-hidden min-h-[34px] bg-black text-white">
+                                <div class="w-24 flex items-center justify-center border-l-[2px] border-gray-600">المحافظة:</div>
+                                <div class="flex-1 flex items-center justify-center px-2">${window.state.userData.governorate}</div>
+                            </div>
+                            <!-- Row 4 -->
+                            <div class="flex border-[2px] border-black rounded-lg overflow-hidden min-h-[34px]">
+                                <div class="bg-black text-white w-24 flex items-center justify-center border-l-[2px] border-black">اسم الداعي:</div>
+                                <div class="flex-1 flex items-center justify-center bg-white text-black px-2 text-center break-words">${window.state.userData.inviter}</div>
+                            </div>
+                            <!-- Row 5 -->
+                            <div class="flex border-[2px] border-black rounded-lg overflow-hidden min-h-[34px]">
+                                <div class="bg-black text-white w-24 flex items-center justify-center border-l-[2px] border-black">تدرس إيه:</div>
+                                <div class="flex-1 flex items-center justify-center bg-white text-black px-2 text-center break-words">${window.state.userData.study}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="relative my-4 flex items-center h-8 w-full overflow-hidden">
+                        <div class="absolute -right-4 w-8 h-8 bg-[#050505] rounded-full shadow-[inset_2px_0_0_#36CFFF,inset_5px_0_10px_rgba(0,0,0,0.5)] z-10 border border-[#050505]"></div>
+                        <div class="w-full border-b-[3px] border-dashed border-black mx-4"></div>
+                        <div class="absolute -left-4 w-8 h-8 bg-[#050505] rounded-full shadow-[inset_-2px_0_0_#36CFFF,inset_-5px_0_10px_rgba(0,0,0,0.5)] z-10 border border-[#050505]"></div>
+                    </div>
+
+                    <!-- Bottom Section -->
+                    <div class="px-6 pb-6 text-center">
+                        <!-- Codes -->
+                        <div class="flex justify-between items-center mb-5 gap-4">
+                            <!-- Barcode -->
+                            <div class="flex-1 h-14 bg-white" style="background-image: repeating-linear-gradient(to right, black 0, black 3px, white 3px, white 5px, black 5px, black 6px, white 6px, white 9px, black 9px, black 13px, white 13px, white 15px);"></div>
+                            <!-- QR Code -->
+                            <div class="w-16 h-16 bg-[#36CFFF] p-[2px] shrink-0 border border-black rounded">
+                                 <div class="w-full h-full bg-white relative" style="background-image: linear-gradient(45deg, black 25%, transparent 25%, transparent 75%, black 75%, black), linear-gradient(45deg, black 25%, transparent 25%, transparent 75%, black 75%, black); background-size: 6px 6px; background-position: 0 0, 3px 3px;">
+                                     <div class="absolute inset-2 bg-[#36CFFF]"></div>
+                                     <div class="absolute inset-[10px] bg-black"></div>
+                                 </div>
+                            </div>
+                        </div>
+                        
+                        <p class="font-black text-sm m-0 text-black">سعر التذكرة: 30 جنيه مصري</p>
+                        <p class="font-bold text-sm m-0 text-black mt-1">رقم المعاملة: Fyp-${Math.floor(1000000 + Math.random() * 9000000)}</p>
+                        <p class="font-bold text-[13px] text-gray-700 mt-2 tracking-wide">يرجى الاحتفاظ بالتذكرة وإظهارها عند الباب</p>
+                    </div>
+                </div>
+
+                <!-- Smart WhatsApp Button -->
+                <div class="reveal-up delay-300 max-w-md mx-auto">
+                    <button id="smart-whatsapp-btn" onclick="window.handleSmartWhatsApp()" class="w-full bg-[#36CFFF] hover:bg-[#5cd6ff] text-black font-black py-5 px-8 rounded-2xl transition-all duration-500 transform pulse-cyan flex items-center justify-center gap-4 text-xl border-2 border-[#36CFFF] shadow-[0_10px_30px_rgba(54,207,255,0.4)] group">
+                        <i id="btn-icon" class="fa-brands fa-whatsapp text-3xl"></i>
+                        <span id="btn-text">إرسال التيكت وتأكيد الحجز</span>
+                    </button>
+                    <p class="text-gray-400 text-sm mt-3 text-center">* لا تنسَ إرفاق سكرين شوت التحويل في الشات بعد الضغط.</p>
+                </div>
+            `;
+        };
+
+        window.renderQuiz = function() {
+            const qData = window.questionsData[window.state.currentStep];
+            const progressPercentage = ((window.state.currentStep) / window.questionsData.length) * 100;
+            const hasAnswered = window.state.answers[window.state.currentStep] !== undefined;
+
+            let optionsHtml = qData.options.map((opt, index) => {
+                const isSelected = window.state.answers[window.state.currentStep] === opt.id;
+                const animDelay = `animation-delay: ${index * 100}ms`;
+                return `
+                    <div onclick="window.selectOption('${opt.id}')" style="${animDelay}" class="glass-card reveal-up p-5 md:p-6 rounded-2xl flex items-center gap-4 ${isSelected ? 'selected' : ''}">
+                        <div class="w-14 h-14 rounded-full bg-darkCharcoal flex items-center justify-center border ${isSelected ? 'border-luxGold shadow-[0_0_15px_rgba(217,181,109,0.5)]' : 'border-white/10'} transition-all duration-300">
+                            <i class="fa-solid ${opt.icon} text-2xl ${isSelected ? 'text-luxGold' : 'text-gray-400'}"></i>
+                        </div>
+                        <span class="text-lg md:text-xl font-bold flex-grow ${isSelected ? 'text-white' : 'text-gray-300'}">${opt.text}</span>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-luxGold text-2xl drop-shadow-[0_0_10px_rgba(217,181,109,1)]"></i>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            appContainer.innerHTML = `
+                <div class="w-full">
+                    <!-- Progress Bar -->
+                    <div class="mb-10 flex items-center gap-4 reveal-up">
+                        <div class="w-full bg-darkCharcoal rounded-full h-3 overflow-hidden border border-white/5 shadow-inner">
+                            <div class="bg-gradient-gold-red h-full rounded-full transition-all duration-1000 ease-in-out shadow-[0_0_15px_rgba(217,181,109,0.8)] relative" style="width: ${progressPercentage}%">
+                                <div class="absolute inset-0 bg-white/20 w-full animate-pulse"></div>
+                            </div>
+                        </div>
+                        <span class="text-luxGold font-bold whitespace-nowrap text-sm tracking-widest bg-darkCharcoal px-4 py-1 rounded-full border border-luxGold/30">خطوة ${window.state.currentStep + 1} / ${window.questionsData.length}</span>
+                    </div>
+
+                    <div class="glass-panel p-8 md:p-14">
+                        <div class="mb-12 flex items-center gap-5 reveal-up delay-100">
+                            <div class="p-4 bg-neonCyan/10 rounded-2xl border border-neonCyan/30 text-glow-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]">
+                                <i class="fa-solid ${qData.icon} text-4xl text-neonCyan"></i>
+                            </div>
+                            <h2 class="text-3xl md:text-4xl font-black leading-tight text-white drop-shadow-md">${qData.question}</h2>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-12">
+                            ${optionsHtml}
+                        </div>
+
+                        <!-- Navigation -->
+                        <div class="flex justify-between items-center mt-10 pt-8 border-t border-white/10 reveal-up delay-[${qData.options.length * 100 + 100}ms]">
+                            <button onclick="window.prevQuestion()" class="px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-3 text-lg ${window.state.currentStep === 0 ? 'invisible' : 'text-gray-400 hover:text-white hover:bg-white/10'}">
+                                <i class="fa-solid fa-arrow-right"></i> رجوع
+                            </button>
+                            
+                            <button onclick="window.handleNext()" class="${hasAnswered ? 'bg-gradient-gold-red hover:brightness-110 text-white pulse-gold shadow-[0_5px_15px_rgba(193,18,31,0.4)]' : 'bg-darkCharcoal text-gray-600 cursor-not-allowed border border-white/5'} px-10 py-4 rounded-xl font-black transition-all duration-300 transform ${hasAnswered ? 'hover:scale-105' : ''} flex items-center gap-3 text-lg md:text-xl" ${!hasAnswered ? 'disabled' : ''}>
+                                ${window.state.currentStep === window.questionsData.length - 1 ? 'إنشاء خطتي <i class="fa-solid fa-wand-magic-sparkles"></i>' : 'التالي <i class="fa-solid fa-arrow-left"></i>'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.renderLoading = function() {
+            appContainer.innerHTML = `
+                <div class="glass-panel p-16 md:p-24 flex flex-col items-center justify-center min-h-[500px]">
+                    <div class="cinematic-spinner mb-12"></div>
+                    <h2 id="loading-text" class="text-4xl md:text-5xl font-black text-gradient-gold text-glow-gold tracking-wider transition-opacity duration-500 text-center">بنحلل اهتماماتك...</h2>
+                    <div class="w-64 h-1 bg-darkCharcoal rounded-full mt-10 overflow-hidden">
+                        <div class="h-full bg-neonCyan w-1/3 animate-[slideRight_2s_ease-in-out_infinite_alternate] shadow-[0_0_10px_rgba(0,255,255,0.8)]"></div>
+                    </div>
+                </div>
+                <style>
+                    @keyframes slideRight {
+                        0% { transform: translateX(-200%); }
+                        100% { transform: translateX(200%); }
+                    }
+                </style>
+            `;
+
+            const texts = [
+                "بنحلل اهتماماتك...",
+                "بنحدد مستوى خبرتك...",
+                "بنبني خارطة الطريق...",
+                "بنجهز خطتك النهائية..."
+            ];
+            
+            const textElement = document.getElementById('loading-text');
+            let textIndex = 0;
+
+            const interval = setInterval(() => {
+                textIndex++;
+                if (textIndex < texts.length) {
+                    textElement.style.opacity = 0;
+                    setTimeout(() => {
+                        textElement.innerText = texts[textIndex];
+                        textElement.style.opacity = 1;
+                    }, 500);
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => window.transitionTo(window.renderResult), 1000);
+                }
+            }, 1800);
+        };
+
+        window.renderResult = function() {
+            const getAnswerText = (qIndex) => {
+                const ansId = window.state.answers[qIndex];
+                return window.questionsData[qIndex].options.find(o => o.id === ansId)?.text || "غير محدد";
+            };
+
+            const waMessage = `*طلب تحليل مسار - FIND YOUR PATH* 🚀\n\n` +
+                              `أهلاً، أنا ${window.state.userData.fullName}\n` +
+                              `رقم الموبايل: ${window.state.userData.phone}\n` +
+                              `المحافظة: ${window.state.userData.governorate}\n\n` +
+                              `إليك اختياراتي:\n` +
+                              `🎯 *المجال:* ${getAnswerText(0)}\n` +
+                              `📈 *المستوى:* ${getAnswerText(1)}\n` +
+                              `🏆 *الهدف:* ${getAnswerText(2)}\n` +
+                              `⏱️ *الوقت المتاح:* ${getAnswerText(3)}\n` +
+                              `💰 *الميزانية:* ${getAnswerText(4)}\n\n` +
+                              `برجاء إرسال الخطة والتفاصيل.`;
+
+            const encodedMessage = encodeURIComponent(waMessage);
+            window.waLink1 = `https://wa.me/201131134244?text=${encodedMessage}`;
+            window.waLink2 = `https://wa.me/201003439385?text=${encodedMessage}`;
+            window.state.whatsappStep = 1;
+
+            appContainer.innerHTML = `
+                <div class="glass-panel p-12 md:p-20 text-center relative border-luxGold/40 shadow-[0_30px_60px_rgba(0,0,0,1)]">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-gold-red"></div>
+                    
+                    <div class="w-32 h-32 bg-darkCharcoal rounded-full flex items-center justify-center mx-auto mb-10 shadow-[0_0_50px_rgba(217,181,109,0.3)] border-2 border-luxGold/60 reveal-up">
+                        <i class="fa-solid fa-shield-check text-luxGold text-6xl text-glow-gold"></i>
+                    </div>
+                    
+                    <h2 class="text-5xl md:text-6xl font-black mb-8 text-gradient-gold text-glow-gold tracking-wide reveal-up delay-100">تم تجهيز خطتك بنجاح!</h2>
+                    
+                    <p class="text-gray-300 text-xl leading-loose mb-12 max-w-2xl mx-auto reveal-up delay-200">
+                        لقد قمنا بتحليل اختياراتك بدقة ووضعنا المسار الأمثل لك للبدء فوراً. 
+                        <br><br>
+                        <span class="inline-block px-4 py-2 bg-neonCyan/10 border border-neonCyan/30 rounded-lg text-neonCyan font-bold text-glow-cyan">
+                            <i class="fa-solid fa-lock text-sm mr-2"></i> لاستلام النتيجة، يرجى التواصل مع مستشارينا عبر الزر أدناه.
+                        </span>
+                    </p>
+                    
+                    <div class="reveal-up delay-300 max-w-md mx-auto">
+                        <button id="smart-whatsapp-btn" onclick="window.handleSmartWhatsApp()" class="w-full bg-luxGold hover:bg-[#c4a15b] text-black font-black py-6 px-8 rounded-2xl transition-all duration-500 transform pulse-gold flex items-center justify-center gap-4 text-2xl border-2 border-luxGold shadow-[0_10px_30px_rgba(217,181,109,0.4)] relative overflow-hidden group">
+                            <i id="btn-icon" class="fa-brands fa-whatsapp text-4xl"></i>
+                            <span id="btn-text">استلم نتيجتك الآن</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+
+        // --- Interaction Logic ---
+        window.selectOption = function(optionId) {
+            window.state.answers[window.state.currentStep] = optionId;
+            window.renderQuiz(); 
+        };
+
+        window.handleNext = function() {
+            if (window.state.currentStep < window.questionsData.length - 1) {
+                window.state.currentStep++;
+                window.transitionTo(window.renderQuiz);
+            } else {
+                window.transitionTo(window.renderLoading);
+            }
+        };
+
+        window.prevQuestion = function() {
+            if (window.state.currentStep > 0) {
+                window.state.currentStep--;
+                window.renderQuiz(); // No transition for quick backward feel
+            }
+        };
+
+        window.handleSmartWhatsApp = function() {
+            const btn = document.getElementById('smart-whatsapp-btn');
+            const btnText = document.getElementById('btn-text');
+            const btnIcon = document.getElementById('btn-icon');
+
+            if (window.state.whatsappStep === 1) {
+                // Open first link
+                window.open(window.waLink1, '_blank');
+                window.state.whatsappStep = 2;
+                
+                // Switch to secondary style based on flow
+                const isTicket = window.state.flow === 'ticket';
+                btn.className = `w-full bg-transparent border-2 ${isTicket ? 'border-luxGold text-luxGold pulse-gold shadow-[0_0_30px_rgba(217,181,109,0.2)]' : 'border-neonCyan text-neonCyan pulse-cyan shadow-[0_0_30px_rgba(0,255,255,0.2)]'} font-black py-5 px-8 rounded-2xl transition-all duration-500 transform flex items-center justify-center gap-4 text-xl group overflow-hidden relative`;
+                
+                btnText.innerText = "تأكيد الإرسال للرقم البديل";
+                btnIcon.className = "fa-solid fa-paper-plane text-2xl";
+                
+            } else if (window.state.whatsappStep === 2) {
+                // Open second link
+                window.open(window.waLink2, '_blank');
+                window.state.whatsappStep = 3;
+                
+                // Disable button
+                btn.className = "w-full bg-darkCharcoal border border-white/10 text-gray-500 font-black py-5 px-8 rounded-2xl transition-all duration-500 flex items-center justify-center gap-4 text-xl cursor-not-allowed";
+                btn.disabled = true;
+                
+                btnText.innerText = "تم الإرسال بنجاح";
+                btnIcon.className = "fa-solid fa-circle-check text-2xl text-green-500 drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]";
+            }
+        };
+
+        // --- Init ---
+        window.onload = () => {
+            window.transitionTo(window.renderRegister);
+        };
+    </script>
+</body>
+</html>
